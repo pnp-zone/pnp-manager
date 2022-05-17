@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/hellflame/argparse"
-	"github.com/pnp-zone/pnp-manager/search"
+	"github.com/pnp-zone/pnp-manager/management"
 	"os"
 )
 
@@ -19,8 +19,18 @@ func main() {
 	installParser := parser.AddCommand("install", "Install plugins", &argparse.ParserConfig{})
 	removeParser := parser.AddCommand("remove", "Remove plugins", &argparse.ParserConfig{})
 	upgradeParser := parser.AddCommand("upgrade", "Upgrade plugins", &argparse.ParserConfig{})
-	mkpluginParser := parser.AddCommand("mkplugin", "Make plugin", &argparse.ParserConfig{})
+	initParser := parser.AddCommand("init", "Initialize plugin structure", &argparse.ParserConfig{})
+	initName := initParser.String("", "name", &argparse.Option{
+		Positional: true,
+		Required:   true,
+	})
+	buildParser := parser.AddCommand("build", "Build plugin", &argparse.ParserConfig{})
 	uploadParser := parser.AddCommand("upload", "Upload plugin to ", &argparse.ParserConfig{})
+	uploadPath := uploadParser.String("", "path", &argparse.Option{
+		Positional: true,
+		Required:   true,
+	})
+
 	searchParser := parser.AddCommand("search", "Search for plugins", &argparse.ParserConfig{})
 	searchPattern := searchParser.String("", "search-pattern", &argparse.Option{
 		Positional: true,
@@ -36,9 +46,12 @@ func main() {
 	case installParser.Invoked:
 	case removeParser.Invoked:
 	case upgradeParser.Invoked:
-	case mkpluginParser.Invoked:
+	case initParser.Invoked:
+		management.Init(*initName)
+	case buildParser.Invoked:
 	case uploadParser.Invoked:
+		management.Upload(*uploadPath)
 	case searchParser.Invoked:
-		search.Search(*searchPattern, *configPath)
+		management.Search(*searchPattern, *configPath)
 	}
 }
