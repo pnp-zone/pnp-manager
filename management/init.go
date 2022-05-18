@@ -15,13 +15,16 @@ type Local struct {
 }
 
 type Global struct {
-	Name         string
-	VersionMajor uint
-	VersionMinor uint
-	VersionPatch uint
-	Description  string
-	License      string
-	SourceURL    string
+	Name            string
+	VersionMajor    uint
+	VersionMinor    uint
+	VersionPatch    uint
+	PNPVersionMajor uint
+	PNPVersionMinor uint
+	PNPVersionPatch uint
+	Description     string
+	License         string
+	SourceURL       string
 }
 
 type Config struct {
