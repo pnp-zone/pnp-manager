@@ -2,6 +2,7 @@ package management
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"fmt"
 	"github.com/myOmikron/echotools/color"
@@ -103,6 +104,21 @@ func Build() {
 		config.Global.Name,
 		config.Global.VersionMajor, config.Global.VersionMinor, config.Global.VersionPatch,
 	)
+
+	if _, err := os.Stat(filename + ".gz"); err != nil {
+		if !os.IsNotExist(err) {
+			color.Println(color.RED, err.Error())
+			os.Exit(1)
+		}
+	} else {
+		reader := bufio.NewReader(os.Stdin)
+		color.Print(color.YELLOW, "Build with that version already exists. Press [y] to overwrite. ")
+		line, _, _ := reader.ReadLine()
+		if string(line) != "y" {
+			os.Exit(1)
+		}
+	}
+
 	tarfile, err := os.Create(filename)
 	if err != nil {
 		color.Println(color.RED, "Could not build file in "+config.Local.OutputDir)
@@ -206,5 +222,6 @@ func Build() {
 		color.Println(color.RED, "Could not remove tar archive")
 	}
 
-	color.Println(color.GREEN, "Finished building. You can now sign the build.")
+	color.Println(color.GREEN, "Finished building. You can now sign the build:")
+	fmt.Println("gpg --detach-sign " + filename + ".gz\n")
 }
