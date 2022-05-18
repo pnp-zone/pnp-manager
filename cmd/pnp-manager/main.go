@@ -24,7 +24,10 @@ func main() {
 		Positional: true,
 		Required:   true,
 	})
-	buildParser := parser.AddCommand("build", "Build plugin", &argparse.ParserConfig{})
+	buildParser := parser.AddCommand("build", "Build plugin", &argparse.ParserConfig{
+		DisableDefaultShowHelp: true,
+	})
+
 	uploadParser := parser.AddCommand("upload", "Upload plugin to ", &argparse.ParserConfig{})
 	uploadPath := uploadParser.String("", "path", &argparse.Option{
 		Positional: true,
@@ -49,6 +52,7 @@ func main() {
 	case initParser.Invoked:
 		management.Init(*initName)
 	case buildParser.Invoked:
+		management.Build()
 	case uploadParser.Invoked:
 		management.Upload(*uploadPath)
 	case searchParser.Invoked:
