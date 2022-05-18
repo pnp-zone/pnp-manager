@@ -16,20 +16,24 @@ import (
 
 func checkDir(dirname string) {
 	if dirname == "" {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, dirname+" must be an existing directory.")
 		os.Exit(1)
 	}
 
 	if stat, err := os.Stat(dirname); err != nil {
 		if os.IsNotExist(err) {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, dirname+" must be an existing directory.")
 			os.Exit(1)
 		} else {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, err.Error())
 			os.Exit(1)
 		}
 	} else {
 		if !stat.IsDir() {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, dirname+" must be an existing directory.")
 			os.Exit(1)
 		}
@@ -39,16 +43,21 @@ func checkDir(dirname string) {
 func Build() {
 	var config Config
 
+	fmt.Print("Checking config ... ")
+
 	if data, err := ioutil.ReadFile("plugin.toml"); err != nil {
 		if os.IsNotExist(err) {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, "plugin.toml was not found")
 			os.Exit(1)
 		} else {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, err.Error())
 			os.Exit(1)
 		}
 	} else {
 		if err := toml.Unmarshal(data, &config); err != nil {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, "Could not unmarshal plugin.toml")
 			color.Println(color.RED, err.Error())
 			os.Exit(1)
@@ -64,6 +73,7 @@ func Build() {
 	}
 
 	if config.Local.OutputDir == "" {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, "OutputDir must be empty")
 		os.Exit(1)
 	}
@@ -71,16 +81,19 @@ func Build() {
 	if stat, err := os.Stat(config.Local.OutputDir); err != nil {
 		if os.IsNotExist(err) {
 			if err := os.Mkdir(config.Local.OutputDir, 0700); err != nil {
+				color.Println(color.RED, "error")
 				color.Println(color.RED, "Could not create OutputDir")
 				color.Println(color.RED, err.Error())
 				os.Exit(1)
 			}
 		} else {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, err.Error())
 			os.Exit(1)
 		}
 	} else {
 		if !stat.IsDir() {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, config.Local.OutputDir+" must be an directory.")
 			os.Exit(1)
 		}
@@ -90,13 +103,17 @@ func Build() {
 
 	if _, err := os.Stat(config.Local.GoPath); err != nil {
 		if os.IsNotExist(err) {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, "GoPath must be an existing go plugin file.")
 			os.Exit(1)
 		} else {
+			color.Println(color.RED, "error")
 			color.Println(color.RED, err.Error())
 			os.Exit(1)
 		}
 	}
+
+	color.Println(color.GREEN, "done")
 
 	filename := fmt.Sprintf(
 		"%s%s_v%d-%d-%d.tar",
@@ -119,6 +136,7 @@ func Build() {
 		}
 	}
 
+	fmt.Print("Creating archive ... ")
 	tarfile, err := os.Create(filename)
 	if err != nil {
 		color.Println(color.RED, "Could not build file in "+config.Local.OutputDir)
@@ -159,35 +177,41 @@ func Build() {
 			_, err = io.Copy(tarball, file)
 			return err
 		}); err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
 
 	info, err := os.Stat(config.Local.GoPath)
 	if err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
 
 	header, err := tar.FileInfoHeader(info, info.Name())
 	if err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
 
 	if err := tarball.WriteHeader(header); err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
 
 	file, err := os.Open(config.Local.GoPath)
 	if err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
 	defer file.Close()
 	_, err = io.Copy(tarball, file)
 	if err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
@@ -195,8 +219,12 @@ func Build() {
 	tarfile.Close()
 	tarball.Close()
 
+	color.Println(color.GREEN, "done")
+
+	fmt.Print("Compressing archive ... ")
 	reader, err := os.Open(filename)
 	if err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, "Could not open tar archive")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
@@ -204,6 +232,7 @@ func Build() {
 
 	writer, err := os.Create(filename + ".gz")
 	if err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
@@ -214,14 +243,36 @@ func Build() {
 	defer archiver.Close()
 
 	if _, err = io.Copy(archiver, reader); err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, err.Error())
 		os.Exit(1)
 	}
 
 	if err := os.Remove(filename); err != nil {
+		color.Println(color.RED, "error")
 		color.Println(color.RED, "Could not remove tar archive")
+		os.Exit(1)
 	}
 
-	color.Println(color.GREEN, "Finished building. You can now sign the build:")
-	fmt.Println("gpg --detach-sign " + filename + ".gz\n")
+	color.Println(color.GREEN, "done")
+
+	fmt.Print("Writing config file ... ")
+	config.Local = Local{}
+	cleanedConfig, err := toml.Marshal(&config)
+	if err != nil {
+		color.Println(color.RED, "error")
+		color.Println(color.RED, err.Error())
+		os.Exit(1)
+	}
+
+	if err := ioutil.WriteFile(filename+".toml", cleanedConfig, 0600); err != nil {
+		color.Println(color.RED, "error")
+		color.Println(color.RED, err.Error())
+		os.Exit(1)
+	}
+
+	color.Println(color.GREEN, "done")
+
+	color.Println(color.GREEN, "\nFinished building. You can now sign the build:")
+	fmt.Println("\tgpg -u <YOUR_GPG_USER> --detach-sign " + filename + ".gz\n")
 }
